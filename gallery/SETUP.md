@@ -1,91 +1,59 @@
-# 작품 갤러리 — 강사용 설정 가이드
+# 작품 갤러리: 개인 Supabase 프로젝트 연결
 
-이 폴더(`vibe1/gallery/`)는 빌드 없이 정적 파일(HTML/CSS/JS)만으로 도는 작품 갤러리입니다.
-2026 정보교사 1급 정교사 자격연수 · 데이터 바이브 코딩 전용입니다.
+이 갤러리는 정적 HTML·CSS·JavaScript로 동작합니다. 제출한 앱 주소와 피드백을 여러 기기에서 함께 보려면 **본인이 소유한 별도의 Supabase 프로젝트**를 연결해야 합니다. 현재 설정은 빈 값이므로 데모 모드로 실행되며, 이 상태에서 작성한 내용은 저장되지 않습니다.
 
-## 1. 15시간 과정 갤러리와의 관계
+## 1. Supabase 프로젝트 만들기
 
-같은 Supabase 프로젝트를 쓰되 **표를 따로 씁니다.**
+1. [Supabase](https://supabase.com/)에 가입하거나 로그인합니다.
+2. 새 프로젝트를 만듭니다. 가능하면 수업자료용으로 별도 프로젝트를 사용합니다.
+3. 프로젝트가 준비되면 대시보드의 **SQL Editor**를 엽니다.
+4. 이 저장소의 `gallery/schema.sql` 파일 내용을 전부 복사해 새 SQL 쿼리에 붙여넣고 **Run**을 실행합니다.
+5. 실행 성공 후 Table Editor에 `classroom_apps`와 `classroom_feedback` 테이블이 생성되었는지 확인합니다.
 
-| 과정 | 작품 표 | 피드백 표 | 좋아요 함수 |
-|---|---|---|---|
-| 서울대 15시간(`web/gallery/`) | `apps` | `feedback` | `increment_likes` |
-| 이 연수(`vibe1/gallery/`) | `vibe1_apps` | `vibe1_feedback` | `vibe1_increment_likes` |
+SQL은 공개 읽기·제출만 허용하고, 일반 사용자의 직접 수정·삭제는 차단하도록 RLS 정책을 설정합니다. 좋아요 수 증가는 별도 함수로 처리합니다.
 
-`schema.sql`은 `vibe1_` 로 시작하는 것만 만듭니다. 기존 표는 손대지 않으므로
-15시간 과정 데이터가 바뀌거나 섞일 일이 없습니다.
+## 2. 갤러리 설정하기
 
-## 2. 표 만들기 (강의 전 1회, 1분)
+Supabase 프로젝트 설정에서 다음 두 값을 확인합니다.
 
-1. Supabase 대시보드 → 왼쪽 **SQL Editor** → **New query**
-2. 이 폴더의 `schema.sql` 내용을 전부 붙여넣기
-3. **Run** 클릭 → 성공 메시지 확인
+- **Project URL**
+- **Publishable key** (또는 프로젝트에서 제공하는 공개용 anon 키)
 
-`vibe1_apps`, `vibe1_feedback` 두 표와 좋아요 증가 함수, RLS 정책이 한 번에 생깁니다.
-여러 번 실행해도 안전합니다.
-
-이 SQL을 실행하기 전에는 갤러리 화면에 빨간 안내문이 뜹니다(화면은 깨지지 않습니다).
-실행하고 5초 정도 기다리면 안내문이 사라지고 목록이 나타납니다.
-
-## 3. config.js
-
-`config.js`에는 Supabase 주소와 publishable(anon) 키, 그리고 표 이름이 들어 있습니다.
-15시간 과정과 같은 프로젝트를 쓰므로 주소·키는 그대로 두고, 표 이름만 이 연수용입니다.
+GitHub 저장소에서 `gallery/config.js`를 열고 다음 값을 본인 프로젝트 값으로 입력한 뒤 커밋합니다.
 
 ```js
 window.APP_CONFIG = {
-  SUPABASE_URL: "https://xxxxxxxx.supabase.co",
-  SUPABASE_KEY: "anon(publishable) 키",
-  TABLE_APPS: "vibe1_apps",
-  TABLE_FEEDBACK: "vibe1_feedback",
-  RPC_INCREMENT_LIKES: "vibe1_increment_likes"
+  SUPABASE_URL: "본인 프로젝트의 Project URL",
+  SUPABASE_KEY: "본인 프로젝트의 publishable key",
+  TABLE_APPS: "classroom_apps",
+  TABLE_FEEDBACK: "classroom_feedback",
+  RPC_INCREMENT_LIKES: "classroom_increment_likes"
 };
 ```
 
-- ⚠️ **service_role(secret) 키는 넣지 마세요.** 화면에 들어가면 누구나 데이터를 지울 수 있습니다.
-- publishable 키는 공개돼도 안전합니다. update/delete는 RLS로 전면 차단, 좋아요는 함수로만 증가합니다.
-- `SUPABASE_URL`/`SUPABASE_KEY`를 비우면 데모 모드로 바뀌어 샘플 작품 4개가 보입니다(저장 안 됨).
+**service_role 또는 secret 키는 절대 입력하지 마세요.** 이 파일은 웹 브라우저로 전송되므로 공개되어도 되는 키만 사용해야 합니다. 실제 데이터 보호는 Supabase의 RLS 정책이 담당합니다.
 
-## 4. 산출물 종류
+## 3. 동작 확인
 
-| 종류 | 단계 |
-|---|---|
-| STEP 1 · 인구·고령화 지도 | STEP 1 |
-| STEP 2 · 박스오피스 | STEP 2 |
-| STEP 3 · AI 채팅앱 | STEP 3 |
-| STEP 4 · 합친 사이트 | STEP 4 |
+1. GitHub Pages에서 `gallery/` 경로를 엽니다.
+2. 실제 DB 연결이 성공하면 데모 안내가 사라지고 Supabase에 저장된 결과물이 표시됩니다.
+3. 테스트용 결과물을 하나 제출한 다음 페이지를 새로고침합니다. 새로고침 후에도 결과물이 남아 있다면 저장이 정상 동작하는 것입니다.
+4. 테스트가 끝나면 테스트 결과물을 Supabase Table Editor에서 정리할 수 있습니다.
 
-이 네 값은 `index.html`(필터 단추·제출 폼 select)과 `schema.sql`의 check 제약에
-같은 문자열로 들어 있습니다. 바꿀 때는 세 곳을 함께 고쳐야 합니다.
+## 4. 공개·개인정보 안내
 
-종류를 고친 뒤에는 `schema.sql`을 다시 한 번 Run 하면 됩니다. 표가 이미 있어도
-check 제약을 다시 걸어 주므로 목록이 최신 상태로 맞춰집니다.
+- 닉네임, 결과물 소개, 앱 주소, 피드백은 공개 웹페이지를 통해 다른 이용자에게 보입니다.
+- 실명, 학교 이메일, 전화번호, 개인 계정 정보 등은 입력하지 않도록 안내하세요.
+- publishable key는 프런트엔드에서 사용하도록 설계된 공개 키입니다. secret/service_role 키와 혼동하지 마세요.
+- 누구나 제출할 수 있는 공개 갤러리이므로 부적절한 제출을 주기적으로 확인하는 것이 좋습니다.
 
-## 5. 배포
-
-`vibe1/` 폴더째로 GitHub Pages에 올라가면 `.../vibe1/gallery/` 주소로 열립니다.
-로컬 확인은 `python3 -m http.server` 로 띄운 뒤 `/vibe1/gallery/` 에 접속합니다.
-
-## 6. 운영 수칙
-
-- **연수 전날 1회 접속** — Supabase 무료 요금제는 7일간 활동이 없으면 프로젝트가 멈춥니다. 전날 한 번 열어 깨워 둡니다.
-- **장애 시 대체** — 갤러리가 열리지 않으면 패들렛 같은 예비 게시판에 앱 주소를 남기게 안내하고 진행합니다.
-- **확인** — Supabase **Table Editor**에서 `vibe1_apps`, `vibe1_feedback` 표를 열면 올라온 작품과 피드백이 보입니다. 별도 강사 화면은 없습니다.
-- **금지어** — `app.js` 맨 위 `BANNED_WORDS` 배열에 단어 문자열만 추가하면 닉네임·소개·피드백에서 걸러집니다.
-
-## 7. 공개 안내
-
-- 닉네임·소개·앱 주소는 누구나 볼 수 있게 공개됩니다.
-- 제출 폼에 직접 넣고 누르는 행위가 공개 의사 표시입니다. 원치 않으면 올리지 않으면 됩니다.
-- 실명 대신 닉네임 사용을 권합니다.
-
-## 8. 파일 구성
+## 파일 구성
 
 | 파일 | 역할 |
 |---|---|
-| `index.html` | 화면 구조 (갤러리 / 작품 제출 두 화면) |
-| `style.css` | 디자인 (교재와 같은 크림·골드 계열, 이 폴더 안에서 자족) |
-| `app.js` | 데모·실제 모드 분기, 데이터 처리, 금지어 필터, 렌더링 |
-| `config.js` | Supabase 주소·publishable 키·표 이름 |
-| `schema.sql` | Supabase에 붙여넣을 표·RLS·함수 정의 |
-| `SETUP.md` | 이 문서 |
+| `index.html` | 결과물 보기와 제출 화면 |
+| `style.css` | 갤러리 디자인 |
+| `app.js` | 목록·제출·좋아요·피드백 동작 |
+| `config.js` | 본인 Supabase 프로젝트 연결 설정 |
+| `schema.sql` | 테이블, 접근 정책, 좋아요 함수 |
+| `SETUP.md` | 이 안내서 |
