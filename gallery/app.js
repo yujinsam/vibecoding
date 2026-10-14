@@ -1,5 +1,5 @@
 // ============================================================
-// 2026 정보교사 1급 정교사 자격연수 · 데이터 바이브 코딩
+// 데이터과학 수업자료
 // 작품 갤러리 — app.js
 //
 // 빌드 없는 정적 SPA. config.js 의 SUPABASE_URL/KEY 가 비어 있으면
@@ -38,9 +38,9 @@
   const hasRealConfig = !!(cfg.SUPABASE_URL && cfg.SUPABASE_KEY &&
     cfg.SUPABASE_URL.trim() && cfg.SUPABASE_KEY.trim());
 
-  const TABLE_APPS = cfg.TABLE_APPS || "vibe1_apps";
-  const TABLE_FEEDBACK = cfg.TABLE_FEEDBACK || "vibe1_feedback";
-  const RPC_INCREMENT_LIKES = cfg.RPC_INCREMENT_LIKES || "vibe1_increment_likes";
+  const TABLE_APPS = cfg.TABLE_APPS || "classroom_apps";
+  const TABLE_FEEDBACK = cfg.TABLE_FEEDBACK || "classroom_feedback";
+  const RPC_INCREMENT_LIKES = cfg.RPC_INCREMENT_LIKES || "classroom_increment_likes";
 
   const DEMO_MODE = !hasRealConfig;
 
@@ -236,7 +236,12 @@
       return;
     }
 
-    noticeEl.hidden = true;
+    if (DEMO_MODE) {
+      noticeEl.hidden = false;
+      noticeEl.textContent = "데모 모드입니다. 아래 작품은 예시이며, 제출·좋아요·피드백은 저장되지 않습니다. 실제로 사용하려면 gallery/SETUP.md 안내에 따라 본인 Supabase 프로젝트를 연결하세요.";
+    } else {
+      noticeEl.hidden = true;
+    }
     countEl.hidden = false;
     countEl.textContent = `총 ${filtered.length}개 작품`;
     emptyEl.hidden = filtered.length > 0;
@@ -291,6 +296,10 @@
 
         fbMsg.hidden = true;
         fbMsg.className = "fb-msg";
+        if (!useSupabase) {
+          showFbMsg(fbMsg, "현재 데모 모드에서는 피드백이 저장되지 않습니다. 갤러리 운영자가 데이터베이스를 연결한 뒤 사용하세요.", "error");
+          return;
+        }
 
         if (!nickname || !content) {
           showFbMsg(fbMsg, "닉네임과 피드백을 모두 넣어주세요.", "error");
@@ -309,7 +318,7 @@
           nickInput.value = "";
           contentInput.value = "";
           // 등록 후 최신 데이터를 다시 받아 화면 전체를 새로 그린다.
-          // (다른 선생님이 남긴 댓글·좋아요도 이때 함께 반영된다)
+          // (다른 사용자가 남긴 댓글·좋아요도 이때 함께 반영된다)
           try {
             await loadApps();
             renderGallery();
@@ -401,6 +410,9 @@
       e.preventDefault();
       msgEl.hidden = true;
       msgEl.className = "form-msg";
+      if (DEMO_MODE) {
+        return showFormMsg("현재 데모 모드이므로 제출 내용은 저장되지 않습니다. 갤러리 운영자가 본인 Supabase 프로젝트를 연결한 뒤 사용하세요.", "error");
+      }
 
       const assignment = $("#f-assignment").value;
       const nickname = $("#f-nickname").value.trim();
@@ -432,7 +444,7 @@
         renderGallery();
       } catch (err) {
         console.error(err);
-        showFormMsg("게시 중 오류가 났습니다. 잠시 후 다시 시도해주세요. (계속 같은 오류라면 강사에게 알려주세요)", "error");
+        showFormMsg("게시 중 오류가 났습니다. 잠시 후 다시 시도해주세요. (계속 같은 오류라면 담당 교사에게 문의하세요)", "error");
       } finally {
         submitBtn.disabled = false;
       }
